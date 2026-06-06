@@ -1,0 +1,59 @@
+# .packaging-tools.neon
+# Configuration for the packaging tools
+
+# false = disabled, true = enabled (uses phpstan/phpstan-phpunit or larastan/larastan)
+analyse: true
+
+
+# true = enabled (auto-generate badges), false = disabled
+badges: true
+
+
+# false = disabled, true = enabled (adds --coverage to the test runner)
+coverage: false
+
+
+# false = disabled, true = enabled (requires infection/infection)
+infection: false
+
+
+# null = disabled, string = enabled (command to assemble Markdown files)
+markdown: SchenkeIo\PackagingTools\Workbench\MakeMarkdown::run
+
+
+# null = disabled, connection:* = auto-detect, connection:table1,table2 = enabled (with connection and tables)
+migrations: null
+
+
+# false = disabled, true = enabled (uses laravel/pint)
+pint: true
+
+
+# an array of scripts to include in this group: pint, test, markdown
+quick:
+	- pint
+	- test
+	- markdown
+
+
+
+# an array of scripts to include in this group: pint, analyse, test, coverage, infection, markdown
+release:
+	- pint
+	- analyse
+	- coverage
+	- markdown
+
+
+
+# null = disabled, true = default path, 'path/to/file.sql' = custom path
+sql-cache: null
+
+
+# '' = disabled, 'pest' or 'phpunit' = enabled
+test: pest
+
+
+# Register custom tasks here
+customTasks: []
+

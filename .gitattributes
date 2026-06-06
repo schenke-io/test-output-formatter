@@ -1,0 +1,11 @@
+# Ignored files for usage in apps like Laravel
+/docs export-ignore
+/tests export-ignore
+/vendor export-ignore
+/workbench export-ignore
+testbench.yaml export-ignore
+phpunit.xml export-ignore
+.env* export-ignore
+/.junie export-ignore
+_ide_*.php export-ignore
+

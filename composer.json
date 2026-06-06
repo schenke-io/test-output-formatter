@@ -1,0 +1,68 @@
+{
+    "name": "schenke-io/test-output-formatter",
+    "description": "Isolates failing test files and under-coverage classes for rapid triage.",
+    "type": "phpstan-extension",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "SchenkeIo\\TestOutputFormatter\\": "src/"
+        },
+        "files": [
+            "src/Autoload.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SchenkeIo\\TestOutputFormatter\\Tests\\": "tests/",
+            "SchenkeIo\\TestOutputFormatter\\Tests\\Fixtures\\Src\\": "tests/Fixtures/src/"
+        }
+    },
+    "extra": {
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        },
+        "pest": {
+            "plugins": [
+                "SchenkeIo\\TestOutputFormatter\\Plugin"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.3",
+        "pestphp/pest": "^3.0|^4.0"
+    },
+    "require-dev": {
+        "symfony/process": "^7.0",
+        "phpstan/phpstan": "^2.2",
+        "mockery/mockery": "^1.6",
+        "schenke-io/packaging-tools": "*",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "laravel/pint": "^1.29"
+    },
+    "scripts": {
+        "pack-to": "SchenkeIo\\PackagingTools\\Setup::handle",
+        "low": "composer update --prefer-lowest --prefer-dist",
+        "stable": "composer update --prefer-stable --prefer-dist",
+        "analyse": "./vendor/bin/phpstan analyse",
+        "markdown": "php .make-markdown.php",
+        "pint": "vendor/bin/pint",
+        "quick": [
+            "@pint",
+            "@test",
+            "@markdown"
+        ],
+        "release": [
+            "@pint",
+            "@analyse",
+            "@markdown"
+        ],
+        "test": "vendor/bin/pest"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
