@@ -19,3 +19,6 @@ parameters:
         -
             message: '#expects PHPStan\\Command\\Output, Mockery\\MockInterface given#'
             path: tests/*
+        -
+            message: '#Call to method PHPUnit\\Framework\\Assert::assertTrue\(\) with false will always evaluate to false\.#'
+            path: tests/Fixtures/*

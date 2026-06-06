@@ -150,12 +150,12 @@ class Plugin implements AddsOutput, HandlesArguments
                     }
                 }
                 if (count($outputLines) > 0) {
-                    echo "CUSTOM_UNDER_START".PHP_EOL;
+                    echo 'CUSTOM_UNDER_START'.PHP_EOL;
                     echo "These files are below the given coverage level of {$this->under}".PHP_EOL;
                     foreach ($outputLines as $line) {
                         echo $line.PHP_EOL;
                     }
-                    echo "CUSTOM_UNDER_END".PHP_EOL;
+                    echo 'CUSTOM_UNDER_END'.PHP_EOL;
 
                     return $exitCode === 0 ? 1 : $exitCode;
                 }
