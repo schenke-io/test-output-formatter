@@ -35,6 +35,10 @@ Isolates failing test files and under-coverage classes for rapid triage.
     * [Pest](#pest)
     * [ErrorFormatter](#errorformatter)
       * [Public methods of ErrorFormatter](#public-methods-of-errorformatter)
+    * [CompactErrorFormatter](#compacterrorformatter)
+      * [Public methods of CompactErrorFormatter](#public-methods-of-compacterrorformatter)
+    * [JsonErrorFormatter](#jsonerrorformatter)
+      * [Public methods of JsonErrorFormatter](#public-methods-of-jsonerrorformatter)
 
 ## <a name="installation"></a>Installation
 
@@ -60,9 +64,18 @@ composer require --dev phpstan/extension-installer
 
 - **Error Formatter**: Output only file paths with errors for quick consumption by other tools.
 - **Usage**:
-  ```bash
-  vendor/bin/phpstan analyse --error-format=testOutput
-  ```
+  - **File paths only**:
+    ```bash
+    vendor/bin/phpstan analyse --error-format=testOutput
+    ```
+  - **Compact format**: (file:line message)
+    ```bash
+    vendor/bin/phpstan analyse --error-format=testOutputCompact
+    ```
+  - **JSON format**:
+    ```bash
+    vendor/bin/phpstan analyse --error-format=testOutputJson
+    ```
 
 ### <a name="pest"></a>Pest
 
@@ -76,6 +89,10 @@ composer require --dev phpstan/extension-installer
     ```bash
     vendor/bin/pest --parallel --under=80
     ```
+  - **Slow tests**: Identifies tests that take longer than a threshold or the N slowest tests.
+    ```bash
+    vendor/bin/pest --parallel --over=100 --slowest=5
+    ```
 
 ### <a name="errorformatter"></a>ErrorFormatter
 
@@ -86,6 +103,26 @@ composer require --dev phpstan/extension-installer
 | method       | summary                                             |
 |--------------|-----------------------------------------------------|
 | formatErrors | Formats the errors and outputs them to the console. |
+
+### <a name="compacterrorformatter"></a>CompactErrorFormatter
+
+Custom PHPStan error formatter that outputs one line per error
+
+#### <a name="public-methods-of-compacterrorformatter"></a>Public methods of CompactErrorFormatter
+
+| method       | summary |
+|--------------|---------|
+| formatErrors | -       |
+
+### <a name="jsonerrorformatter"></a>JsonErrorFormatter
+
+
+
+#### <a name="public-methods-of-jsonerrorformatter"></a>Public methods of JsonErrorFormatter
+
+| method       | summary |
+|--------------|---------|
+| formatErrors | -       |
 
 
 ---

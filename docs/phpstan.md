@@ -4,20 +4,31 @@ This package provides a custom PHPStan error formatter that outputs **only the f
 
 ## Registration
 
-To use this formatter, register it in your `phpstan.neon` or `phpstan.neon.dist` file:
+To use these formatters, they are automatically registered via the extension installer. Alternatively, you can register them in your `phpstan.neon` or `phpstan.neon.dist` file:
 
 ```neon
 services:
-    errorFormatter.triage:
+    errorFormatter.testOutput:
         class: SchenkeIo\TestOutputFormatter\PHPStan\ErrorFormatter
+    errorFormatter.testOutputCompact:
+        class: SchenkeIo\TestOutputFormatter\PHPStan\CompactErrorFormatter
+    errorFormatter.testOutputJson:
+        class: SchenkeIo\TestOutputFormatter\PHPStan\JsonErrorFormatter
 ```
 
 ## Usage
 
-Once registered, you can use the formatter by passing the `--error-format` option to PHPStan:
+Once registered, you can use the formatters by passing the `--error-format` option to PHPStan:
 
 ```bash
-vendor/bin/phpstan analyse --error-format=triage
+# File paths only
+vendor/bin/phpstan analyse --error-format=testOutput
+
+# Compact format (file:line message)
+vendor/bin/phpstan analyse --error-format=testOutputCompact
+
+# JSON format
+vendor/bin/phpstan analyse --error-format=testOutputJson
 ```
 
 ## Output Example

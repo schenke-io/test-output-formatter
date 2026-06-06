@@ -4,9 +4,18 @@
 
 - **Error Formatter**: Output only file paths with errors for quick consumption by other tools.
 - **Usage**:
-  ```bash
-  vendor/bin/phpstan analyse --error-format=testOutput
-  ```
+  - **File paths only**:
+    ```bash
+    vendor/bin/phpstan analyse --error-format=testOutput
+    ```
+  - **Compact format**: (file:line message)
+    ```bash
+    vendor/bin/phpstan analyse --error-format=testOutputCompact
+    ```
+  - **JSON format**:
+    ```bash
+    vendor/bin/phpstan analyse --error-format=testOutputJson
+    ```
 
 ### Pest
 
@@ -19,4 +28,8 @@
   - **Coverage check**: Reports classes with line coverage below the specified threshold.
     ```bash
     vendor/bin/pest --parallel --under=80
+    ```
+  - **Slow tests**: Identifies tests that take longer than a threshold or the N slowest tests.
+    ```bash
+    vendor/bin/pest --parallel --over=100 --slowest=5
     ```

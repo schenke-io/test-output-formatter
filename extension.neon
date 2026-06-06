@@ -1,3 +1,7 @@
 services:
     errorFormatter.testOutput:
         class: SchenkeIo\TestOutputFormatter\PHPStan\ErrorFormatter
+    errorFormatter.testOutputCompact:
+        class: SchenkeIo\TestOutputFormatter\PHPStan\CompactErrorFormatter
+    errorFormatter.testOutputJson:
+        class: SchenkeIo\TestOutputFormatter\PHPStan\JsonErrorFormatter

@@ -18,7 +18,9 @@ $assembler->addMarkdown('installation.md')
 $assembler->skills()->all()->writeGuidelines(new \SchenkeIo\PackagingTools\Setup\ProjectContext(), 'resources/boost/guidelines/core.blade.php');
 
 $assembler->classes()
-    ->add(\SchenkeIo\TestOutputFormatter\PHPStan\ErrorFormatter::class);
+    ->add(\SchenkeIo\TestOutputFormatter\PHPStan\ErrorFormatter::class)
+    ->add(\SchenkeIo\TestOutputFormatter\PHPStan\CompactErrorFormatter::class)
+    ->add(\SchenkeIo\TestOutputFormatter\PHPStan\JsonErrorFormatter::class);
 
 $assembler->writeMarkdown('README.md');
 

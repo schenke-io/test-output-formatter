@@ -48,6 +48,7 @@
         "analyse": "./vendor/bin/phpstan analyse",
         "markdown": "php .make-markdown.php",
         "pint": "vendor/bin/pint",
+        "coverage": "vendor/bin/pest --coverage --parallel",
         "quick": [
             "@pint",
             "@test",
@@ -56,6 +57,7 @@
         "release": [
             "@pint",
             "@analyse",
+            "@coverage",
             "@markdown"
         ],
         "test": "vendor/bin/pest"
