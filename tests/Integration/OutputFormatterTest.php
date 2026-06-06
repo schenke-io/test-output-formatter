@@ -8,6 +8,8 @@ it('outputs only the raw file paths of failing tests when flagged', function () 
         'vendor/bin/pest',
         'tests/Fixtures/tests',
         '--failed-files-only',
+        '--colors=never',
+        '--quiet',
     ]);
 
     $process->run();
@@ -31,6 +33,8 @@ it('outputs under-covered classes below the target threshold', function () {
         '--coverage',
         '--under=80',
         '--config=tests/Fixtures/phpunit.xml',
+        '--colors=never',
+        '--quiet',
     ]);
 
     $process->run();

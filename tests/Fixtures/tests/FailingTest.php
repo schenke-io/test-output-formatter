@@ -1,5 +1,9 @@
 <?php
+namespace SchenkeIo\TestOutputFormatter\Tests\Fixtures\Tests;
+use PHPUnit\Framework\TestCase;
 
-test('this test is written to fail', function () {
-    expect(false)->toBeTrue();
-});
+class FailingTest extends TestCase {
+    public function test_this_test_is_written_to_fail() {
+        $this->assertTrue(false);
+    }
+}

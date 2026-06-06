@@ -1,9 +1,12 @@
 <?php
-
+namespace SchenkeIo\TestOutputFormatter\Tests\Fixtures\Tests;
+use PHPUnit\Framework\TestCase;
 use SchenkeIo\TestOutputFormatter\Tests\Fixtures\Src\WellCovered;
 
-test('this test passes completely', function () {
-    $class = new WellCovered;
-    expect($class->coveredMethod())->toBe('This is covered.');
-    expect($class->coveredMethodTwo())->toBe('This is also covered.');
-});
+class PassingTest extends TestCase {
+    public function test_this_test_passes_completely() {
+        $class = new WellCovered;
+        $this->assertEquals('This is covered.', $class->coveredMethod());
+        $this->assertEquals('This is also covered.', $class->coveredMethodTwo());
+    }
+}
