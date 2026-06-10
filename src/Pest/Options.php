@@ -13,6 +13,10 @@ class Options
         public readonly ?int $slowest = null,
         public readonly ?float $over = null,
         public readonly bool $json = false,
+        public readonly ?string $cacheDir = null,
+        public readonly bool $rerunFailures = false,
+        public readonly ?string $since = null,
+        public readonly bool $changed = false,
     ) {}
 
     /**
@@ -26,6 +30,10 @@ class Options
         $slowest = null;
         $over = null;
         $json = false;
+        $cacheDir = null;
+        $rerunFailures = false;
+        $since = null;
+        $changed = false;
 
         $newArguments = [];
         $skipNext = false;
@@ -68,6 +76,31 @@ class Options
                 continue;
             }
 
+            if (str_starts_with($arg, '--cache-dir=')) {
+                $dir = substr($arg, 12);
+                $cacheDir = str_starts_with($dir, '/') ? $dir : getcwd().DIRECTORY_SEPARATOR.$dir;
+
+                continue;
+            }
+
+            if ($arg === '--rerun-failures') {
+                $rerunFailures = true;
+
+                continue;
+            }
+
+            if (str_starts_with($arg, '--since=')) {
+                $since = substr($arg, 8);
+
+                continue;
+            }
+
+            if ($arg === '--changed') {
+                $changed = true;
+
+                continue;
+            }
+
             if ($arg === '--under') {
                 $under = isset($arguments[$index + 1]) ? (float) $arguments[$index + 1] : null;
                 $skipNext = true;
@@ -87,7 +120,7 @@ class Options
         }
 
         return [
-            new self($failedFilesOnly, $under, $slowest, $over, $json),
+            new self($failedFilesOnly, $under, $slowest, $over, $json, $cacheDir, $rerunFailures, $since, $changed),
             $newArguments,
         ];
     }

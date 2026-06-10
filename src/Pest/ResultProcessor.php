@@ -8,21 +8,26 @@ use SebastianBergmann\CodeCoverage\Node\File;
 
 class ResultProcessor
 {
+    /** @var array<string, string[]> */
+    private array $coverageMap = [];
+
     public function __construct(
         private readonly Options $options,
-        private readonly ?string $coveragePath = null
+        private readonly ?string $coveragePath = null,
+        private readonly ?Cache $cache = null
     ) {}
 
     /**
      * @param  string[]  $failedFiles
      * @param  array<int, array{file: string, test: string, ms: float}>  $timing
+     * @param  array<string, string>  $testIdToFile
      */
-    public function process(array $failedFiles, array $timing): Result
+    public function process(array $failedFiles, array $timing, array $testIdToFile = []): Result
     {
         $uniqueFailedFiles = array_values(array_unique($failedFiles));
         sort($uniqueFailedFiles);
 
-        $underCovered = $this->getUnderCovered();
+        $underCovered = $this->getUnderCovered($testIdToFile);
 
         if ($this->options->over !== null) {
             $timing = array_filter($timing, fn ($t) => $t['ms'] >= $this->options->over);
@@ -39,19 +44,27 @@ class ResultProcessor
             return $a['test'] <=> $b['test'];
         });
 
-        return new Result($uniqueFailedFiles, $underCovered, $timing);
+        return new Result($uniqueFailedFiles, $underCovered, $timing, $this->coverageMap);
     }
 
     /**
+     * @param  array<string, string>  $testIdToFile
      * @return array<int, array{file: string, cov: float, lines: string}>
      */
-    private function getUnderCovered(): array
+    private function getUnderCovered(array $testIdToFile = []): array
     {
-        $underCovered = [];
-        if ($this->options->under === null) {
-            return $underCovered;
-        }
+        if ($this->cache) {
+            $cachedUnder = $this->cache->read('under-covered.json');
+            $cachedMap = $this->cache->read('source-to-tests.json');
+            if (is_array($cachedUnder)) {
+                if (is_array($cachedMap)) {
+                    $this->coverageMap = $cachedMap;
+                }
 
+                return $cachedUnder;
+            }
+        }
+        $underCovered = [];
         $coveragePath = $this->coveragePath ?? Coverage::getPath();
         if (! file_exists($coveragePath)) {
             return $underCovered;
@@ -60,7 +73,7 @@ class ResultProcessor
         /** @var CodeCoverage $codeCoverage */
         $codeCoverage = require $coveragePath;
 
-        return $this->extractUnderCovered($codeCoverage);
+        return $this->extractUnderCovered($codeCoverage, $testIdToFile);
     }
 
     /**
@@ -71,34 +84,61 @@ class ResultProcessor
      * This allows us to use anonymous classes in unit tests.
      *
      * @param  CodeCoverage  $codeCoverage
+     * @param  array<string, string>  $testIdToFile
      * @return array<int, array{file: string, cov: float, lines: string}>
      */
-    public function extractUnderCovered($codeCoverage): array
+    public function extractUnderCovered($codeCoverage, array $testIdToFile = []): array
     {
         $underCovered = [];
+        $this->coverageMap = [];
         $report = $codeCoverage->getReport();
         foreach ($report->getIterator() as $file) {
             if (is_object($file) && method_exists($file, 'lineCoverageData')) {
                 /** @var File $file */
-                $percentage = $file->percentageOfExecutedLines()->asFloat();
                 $fileId = $file->id();
-                if ($percentage < $this->options->under) {
-                    $uncoveredLines = array_keys(array_filter($file->lineCoverageData(), fn ($v) => is_array($v) && count($v) === 0));
-                    $linesString = Path::getLineRanges($uncoveredLines);
+                $normalizedFile = Path::normalize($fileId);
 
-                    $dirname = dirname($fileId);
-                    $basename = basename($fileId, '.php');
-                    $name = $dirname === '.' ? $basename : $dirname.DIRECTORY_SEPARATOR.$basename;
+                // Build coverage map
+                foreach ($file->lineCoverageData() as $lineData) {
+                    if (is_array($lineData)) {
+                        foreach ($lineData as $testId) {
+                            if (isset($testIdToFile[$testId])) {
+                                $testFile = $testIdToFile[$testId];
+                                if (! isset($this->coverageMap[$normalizedFile])) {
+                                    $this->coverageMap[$normalizedFile] = [];
+                                }
+                                if (! in_array($testFile, $this->coverageMap[$normalizedFile])) {
+                                    $this->coverageMap[$normalizedFile][] = $testFile;
+                                }
+                            }
+                        }
+                    }
+                }
 
-                    $underCovered[] = [
-                        'file' => $name,
-                        'cov' => $percentage,
-                        'lines' => $linesString,
-                    ];
+                if ($this->options->under !== null) {
+                    $percentage = $file->percentageOfExecutedLines()->asFloat();
+                    if ($percentage < $this->options->under) {
+                        $uncoveredLines = array_keys(array_filter($file->lineCoverageData(), fn ($v) => is_array($v) && count($v) === 0));
+                        $linesString = Path::getLineRanges($uncoveredLines);
+
+                        $dirname = dirname($normalizedFile);
+                        $basename = basename($normalizedFile, '.php');
+                        $name = $dirname === '.' ? $basename : $dirname.DIRECTORY_SEPARATOR.$basename;
+
+                        $underCovered[] = [
+                            'file' => $name,
+                            'cov' => $percentage,
+                            'lines' => $linesString,
+                        ];
+                    }
                 }
             }
         }
         usort($underCovered, fn ($a, $b) => $a['file'] <=> $b['file']);
+        ksort($this->coverageMap);
+        foreach ($this->coverageMap as &$tests) {
+            sort($tests);
+        }
 
         return $underCovered;
     }

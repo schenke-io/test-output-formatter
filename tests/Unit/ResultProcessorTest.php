@@ -38,7 +38,7 @@ it('handles missing coverage file gracefully', function () {
     expect($result->underCovered)->toBeEmpty();
 });
 
-it('finds under-covered files', function () {
+it('finds under-covered files and builds coverage map', function () {
     $file = new class
     {
         public function percentageOfExecutedLines()
@@ -54,12 +54,12 @@ it('finds under-covered files', function () {
 
         public function id()
         {
-            return 'src/MyFile.php';
+            return getcwd().'/src/MyFile.php';
         }
 
         public function lineCoverageData()
         {
-            return [10 => []];
+            return [10 => ['test1']];
         }
     };
 
@@ -69,13 +69,22 @@ it('finds under-covered files', function () {
     $cc = Mockery::mock();
     $cc->shouldReceive('getReport')->andReturn($report);
 
+    $tempFile = tempnam(sys_get_temp_dir(), 'cov');
+    file_put_contents($tempFile, '<?php return $GLOBALS["test_cc"];');
+    $GLOBALS['test_cc'] = $cc;
+
     $options = new Options(under: 100);
-    $processor = new ResultProcessor($options);
+    $processor = new ResultProcessor($options, $tempFile);
 
-    $result = $processor->extractUnderCovered($cc);
+    $testIdToFile = ['test1' => 'tests/MyTest.php'];
+    $result = $processor->process([], [], $testIdToFile);
 
-    expect($result)->not->toBeEmpty();
-    expect($result[0]['file'])->toBe('src/MyFile');
+    expect($result->underCovered)->not->toBeEmpty();
+    expect($result->underCovered[0]['file'])->toBe('src/MyFile');
+    expect($result->coverageMap)->toBe(['src/MyFile.php' => ['tests/MyTest.php']]);
+
+    unlink($tempFile);
+    unset($GLOBALS['test_cc']);
 });
 
 it('covers the getUnderCovered require block', function () {

@@ -33,3 +33,16 @@
     ```bash
     vendor/bin/pest --parallel --over=100 --slowest=5
     ```
+  - **JSON Output**: Returns results as a JSON object (includes exit code, failures, timing, and coverage).
+    ```bash
+    vendor/bin/pest --format=json
+    ```
+  - **Caching**: Stores results (failures, timing, coverage map) to speed up subsequent runs.
+    ```bash
+    vendor/bin/pest --cache-dir=.pest-cache --rerun-failures
+    ```
+  - **Git-based Selection**: Runs only tests affected by changes since a specific ref or in the current working tree. Requires `--cache-dir` for best results (to use the coverage map).
+    ```bash
+    vendor/bin/pest --changed
+    vendor/bin/pest --since=main
+    ```

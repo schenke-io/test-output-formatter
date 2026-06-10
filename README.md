@@ -33,6 +33,18 @@ Isolates failing test files and under-coverage classes for rapid triage.
   * [Features](#features)
     * [PHPStan](#phpstan)
     * [Pest](#pest)
+* [Test Output Formatter Skill](#test-output-formatter-skill)
+  * [Pest Plugin Flags](#pest-plugin-flags)
+    * [`--format=json`](#format-json)
+    * [`--cache-dir=<dir>`](#cache-dir-dir)
+    * [`--rerun-failures`](#rerun-failures)
+    * [`--changed`](#changed)
+    * [`--since=<ref>`](#since-ref)
+    * [`--under=<percentage>`](#under-percentage)
+    * [`--slowest=<count>`](#slowest-count)
+    * [`--over=<ms>`](#over-ms)
+  * [PHPStan Error Formatters](#phpstan-error-formatters)
+  * [AI Agent Integration](#ai-agent-integration)
     * [ErrorFormatter](#errorformatter)
       * [Public methods of ErrorFormatter](#public-methods-of-errorformatter)
     * [CompactErrorFormatter](#compacterrorformatter)
@@ -93,6 +105,71 @@ composer require --dev phpstan/extension-installer
     ```bash
     vendor/bin/pest --parallel --over=100 --slowest=5
     ```
+  - **JSON Output**: Returns results as a JSON object (includes exit code, failures, timing, and coverage).
+    ```bash
+    vendor/bin/pest --format=json
+    ```
+  - **Caching**: Stores results (failures, timing, coverage map) to speed up subsequent runs.
+    ```bash
+    vendor/bin/pest --cache-dir=.pest-cache --rerun-failures
+    ```
+  - **Git-based Selection**: Runs only tests affected by changes since a specific ref or in the current working tree. Requires `--cache-dir` for best results (to use the coverage map).
+    ```bash
+    vendor/bin/pest --changed
+    vendor/bin/pest --since=main
+    ```
+
+# <a name="test-output-formatter-skill"></a>Test Output Formatter Skill
+
+This package provides a Pest plugin and PHPStan error formatters to isolate failing tests, check coverage, and identify slow tests.
+
+## <a name="pest-plugin-flags"></a>Pest Plugin Flags
+
+### <a name="format-json"></a>`--format=json`
+Returns results as a JSON object. Useful for CI and AI agents.
+- `exitCode`: The exit code of the Pest run.
+- `failedFiles`: List of failing test files.
+- `underCovered`: List of files below coverage threshold, including uncovered lines.
+- `timing`: List of tests and their execution time.
+- `coverageMap`: Mapping from source files to the tests that cover them.
+
+### <a name="cache-dir-dir"></a>`--cache-dir=<dir>`
+Specifies a directory to store test results. Required for `--rerun-failures`, `--changed`, and `--since`.
+
+### <a name="rerun-failures"></a>`--rerun-failures`
+Only runs tests that failed in the previous run (requires `--cache-dir`).
+
+### <a name="changed"></a>`--changed`
+Runs tests affected by changes in the current Git working tree.
+- Uses `coverageMap` from cache to identify which tests to run for changed source files.
+- Fails open (runs all tests) if no coverage map is found or if a source file is not in the map.
+
+### <a name="since-ref"></a>`--since=<ref>`
+Runs tests affected by changes since the specified Git reference (e.g., `main`).
+- Same logic as `--changed`.
+
+### <a name="under-percentage"></a>`--under=<percentage>`
+Reports files with coverage below the specified percentage. Triggers `--coverage` automatically if not present.
+
+### <a name="slowest-count"></a>`--slowest=<count>`
+Reports the N slowest tests.
+
+### <a name="over-ms"></a>`--over=<ms>`
+Reports tests taking longer than the specified milliseconds.
+
+## <a name="phpstan-error-formatters"></a>PHPStan Error Formatters
+
+- `testOutput`: File paths only.
+- `testOutputCompact`: File, line, and message.
+- `testOutputJson`: Full error details in JSON.
+
+## <a name="ai-agent-integration"></a>AI Agent Integration
+
+When working with an AI agent:
+1. Use `--format=json` to get a machine-readable summary of failures.
+2. Use `--cache-dir` to maintain state across multiple agent steps.
+3. Use `--rerun-failures` to quickly verify fixes.
+4. Use `--changed` or `--since` to minimize the test suite for the current task.
 
 ### <a name="errorformatter"></a>ErrorFormatter
 

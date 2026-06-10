@@ -9,6 +9,8 @@ use PHPUnit\Event\Test\Failed;
 use PHPUnit\Event\Test\Finished;
 use PHPUnit\Event\Test\Prepared;
 use PHPUnit\Event\TestData\TestDataCollection;
+use SchenkeIo\TestOutputFormatter\Pest\Cache;
+use SchenkeIo\TestOutputFormatter\Pest\Git;
 use SchenkeIo\TestOutputFormatter\Pest\Options;
 use SchenkeIo\TestOutputFormatter\Plugin;
 
@@ -217,10 +219,52 @@ it('outputs JSON format correctly with all components', function () {
     $output = ob_get_clean();
 
     $data = json_decode($output, true);
-    expect($data)->toHaveKeys(['failedFiles', 'underCovered', 'timing']);
+    expect($data)->toHaveKeys(['exitCode', 'failedFiles', 'underCovered', 'timing', 'coverageMap']);
+    expect($data['exitCode'])->toBe(1);
     expect($data['failedFiles'])->toContain('Fail.php');
     expect($data['timing'][0]['file'])->toBe('Time.php');
     expect($data['timing'][0]['ms'])->toEqual(150.0);
+});
+
+it('uses coverage map to select tests when source files change', function () {
+    $cacheDir = sys_get_temp_dir().'/pest_cache_'.uniqid();
+    if (! is_dir($cacheDir)) {
+        mkdir($cacheDir, 0777, true);
+    }
+
+    $plugin = createPlugin();
+    setProp($plugin, 'options', new Options(changed: true, cacheDir: $cacheDir));
+
+    // Mock Cache - write the map directly
+    $cache = new Cache($cacheDir);
+    $coverageMap = [
+        'src/Source.php' => ['tests/TestA.php'],
+    ];
+    $cache->write('source-to-tests.json', $coverageMap);
+
+    // Mock Git
+    $git = Mockery::mock(Git::class);
+    $git->shouldReceive('getChangedFiles')->andReturn(['src/Source.php']);
+    Plugin::setTestGit($git);
+
+    // Create fake test file
+    $testFile = getcwd().'/tests/TestA.php';
+    if (! is_dir(dirname($testFile))) {
+        mkdir(dirname($testFile), 0777, true);
+    }
+    touch($testFile);
+
+    $args = ['pest', '--changed', '--cache-dir='.$cacheDir];
+    $newArgs = $plugin->handleArguments($args);
+
+    expect($newArgs)->toContain('tests/TestA.php');
+    expect($newArgs)->not->toContain('src/Source.php');
+
+    // Clean up
+    unlink($testFile);
+    array_map('unlink', glob("$cacheDir/*"));
+    rmdir($cacheDir);
+    Plugin::setTestGit(null);
 });
 
 it('sorts timing results by test name when files are identical', function () {
